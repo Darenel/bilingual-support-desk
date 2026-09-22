@@ -1,0 +1,32 @@
+{
+  "name": "bilingual-support-desk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:all": "node scripts/dev-all.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "seed": "node scripts/seed.mjs",
+    "seed:recruiter": "node scripts/seed.mjs --recruiter",
+    "test:node": "node --test tests/plain-record.test.mjs tests/recruiter-seed.test.mjs tests/migration.test.mjs",
+    "test:integration": "node scripts/run-integration.mjs",
+    "test": "npm run test:node && npm run test:integration"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,15 @@
+PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = WAL;
+PRAGMA busy_timeout = 5000;
+CREATE TABLE IF NOT EXISTS organizations (id TEXT PRIMARY KEY, name TEXT NOT NULL, widget_key TEXT UNIQUE NOT NULL, allowed_origin TEXT NOT NULL DEFAULT 'http://localhost:3000');
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, org_id TEXT NOT NULL REFERENCES organizations(id), name TEXT NOT NULL, first_name TEXT NOT NULL DEFAULT '', last_name TEXT NOT NULL DEFAULT '', username TEXT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','agent')));
+CREATE UNIQUE INDEX IF NOT EXISTS users_username_ci ON users(lower(username)) WHERE username IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_ci ON users(lower(email));
+CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS tickets (id TEXT PRIMARY KEY, org_id TEXT NOT NULL REFERENCES organizations(id), subject TEXT NOT NULL, customer TEXT NOT NULL, email TEXT NOT NULL, language TEXT NOT NULL CHECK(language IN ('es','en')), status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','pending','closed')), priority TEXT NOT NULL DEFAULT 'normal' CHECK(priority IN ('normal','high')), assigned_to TEXT REFERENCES users(id), access_hash TEXT, version INTEGER NOT NULL DEFAULT 1, first_response_at TEXT, first_response_sla_hours INTEGER, closed_at TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')), updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL REFERENCES tickets(id), author TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('customer','agent')), body TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, ticket_id TEXT NOT NULL REFERENCES tickets(id), actor TEXT NOT NULL, action TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS org_revisions (org_id TEXT PRIMARY KEY REFERENCES organizations(id), revision INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS ticket_org ON tickets(org_id, updated_at);
+CREATE INDEX IF NOT EXISTS message_ticket ON messages(ticket_id, created_at);
